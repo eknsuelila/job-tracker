@@ -1,0 +1,44 @@
+# =====================================================================================
+# Default configuration (used when no profile is active, e.g. `./mvnw spring-boot:run`).
+# Uses an in-memory H2 database: zero setup, but data is lost on restart (demo data is re-seeded).
+# Production settings live in application-prod.yml (activated with SPRING_PROFILES_ACTIVE=prod).
+# ${NAME:default} syntax = read environment variable NAME, or use the default if it is not set.
+# =====================================================================================
+server:
+  port: 8080
+
+spring:
+  application:
+    name: job-tracker
+  datasource:
+    # mem: in-memory database. MODE=PostgreSQL makes H2 behave like Postgres so the same
+    # SQL migrations work in dev and production. DATABASE_TO_LOWER matches Postgres' lowercase names.
+    url: jdbc:h2:mem:jobtracker;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH
+    username: sa
+    password:
+  h2:
+    console:
+      enabled: true          # browse the DB at http://localhost:8080/h2-console (JDBC URL as above)
+  jpa:
+    # Disable "Open Session In View": DB access must happen inside services/transactions, not
+    # lazily while JSON is being written. Avoids hidden queries and performance surprises.
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate     # Flyway owns the schema; Hibernate only checks entities match the tables
+  flyway:
+    enabled: true            # run src/main/resources/db/migration/*.sql at startup
+
+# Custom application settings (read with @Value("${app...}")).
+app:
+  seed-demo-data: true       # create demo@example.com / password123 with sample data (DemoDataSeeder)
+  cors:
+    allowed-origins: http://localhost:4200
+  jwt:
+    # Base64-encoded HMAC key (>= 256 bits). Dev-only default; ALWAYS set JWT_SECRET in production.
+    # Generate one with:  openssl rand -base64 48
+    secret: ${JWT_SECRET:ZGV2LW9ubHktc2VjcmV0LWNoYW5nZS1tZS1pbi1wcm9kdWN0aW9uLTEyMzQ1Njc4OTA=}
+    expiration-ms: 86400000  # token lifetime: 24 hours
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html   # interactive API docs at http://localhost:8080/swagger-ui.html

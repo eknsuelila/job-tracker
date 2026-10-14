@@ -1,0 +1,22 @@
+<!-- The navbar is only shown when someone is logged in. auth.isLoggedIn() is a signal, so
+     this block appears/disappears automatically on login/logout. -->
+@if (auth.isLoggedIn()) {
+  <header class="navbar">
+    <a class="brand" routerLink="/dashboard">
+      <span class="brand-mark">JT</span> Job Tracker
+    </a>
+    <nav>
+      <!-- routerLinkActive adds the "active" CSS class when the URL matches -->
+      <a routerLink="/dashboard" routerLinkActive="active">Dashboard</a>
+      <a routerLink="/applications" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Applications</a>
+    </nav>
+    <div class="user">
+      <span class="user-name">{{ auth.currentUser()?.name }}</span>
+      <button class="btn btn-ghost" type="button" (click)="auth.logout()">Log out</button>
+    </div>
+  </header>
+}
+
+<main class="container">
+  <router-outlet />
+</main>

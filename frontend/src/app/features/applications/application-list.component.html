@@ -1,0 +1,103 @@
+<div class="page-header">
+  <div>
+    <h1>Applications</h1>
+    <p>
+      @if (page(); as p) { {{ p.totalElements }} total } @else { &nbsp; }
+    </p>
+  </div>
+  <a class="btn btn-primary" routerLink="/applications/new">+ New application</a>
+</div>
+
+<!-- Filters -->
+<div class="card filters">
+  <input class="input" type="search" placeholder="Search company, position or location…"
+         [formControl]="search" aria-label="Search" />
+  <select class="input" [formControl]="statusFilter" aria-label="Filter by status">
+    <option value="">All statuses</option>
+    @for (s of statuses; track s) {
+      <option [value]="s">{{ s | statusLabel }}</option>
+    }
+  </select>
+  @if (search.value || statusFilter.value) {
+    <button class="btn btn-ghost" type="button" (click)="clearFilters()">Clear</button>
+  }
+</div>
+
+@if (error()) {
+  <div class="alert" role="alert">{{ error() }}</div>
+}
+
+<div class="card table-card" [class.is-loading]="loading()">
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <!-- Sortable headers -->
+          <th><button class="th-btn" (click)="sortBy('company')">Company {{ sortIndicator('company') }}</button></th>
+          <th><button class="th-btn" (click)="sortBy('position')">Position {{ sortIndicator('position') }}</button></th>
+          <th>Location</th>
+          <th>Salary</th>
+          <th><button class="th-btn" (click)="sortBy('appliedDate')">Applied {{ sortIndicator('appliedDate') }}</button></th>
+          <th><button class="th-btn" (click)="sortBy('status')">Status {{ sortIndicator('status') }}</button></th>
+          <th class="actions-col"></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (app of page()?.content ?? []; track app.id) {
+          <tr>
+            <td>
+              <strong>{{ app.company }}</strong>
+              @if (app.jobUrl) {
+                <a class="ext" [href]="app.jobUrl" target="_blank" rel="noopener" title="Open job posting">↗</a>
+              }
+            </td>
+            <td>{{ app.position }}</td>
+            <td class="muted">{{ app.location || '—' }}</td>
+            <td class="muted">
+              @if (app.salary !== null) { {{ app.salary | currency: 'USD' : 'symbol' : '1.0-0' }} } @else { — }
+            </td>
+            <td class="muted">{{ app.appliedDate | date: 'mediumDate' }}</td>
+            <td>
+              <!-- Changing this dropdown immediately PATCHes the status on the server -->
+              <!-- NOTE: [selected] is set on each <option> rather than [value] on the <select>,
+                   because the options are created by @for AFTER the select's value would be applied. -->
+              <select class="status-select badge badge-{{ app.status }}"
+                      (change)="changeStatus(app, $any($event.target).value)" aria-label="Status">
+                @for (s of statuses; track s) {
+                  <option [value]="s" [selected]="s === app.status">{{ s | statusLabel }}</option>
+                }
+              </select>
+            </td>
+            <td class="actions">
+              @if (confirmingDeleteId() === app.id) {
+                <span class="muted">Delete?</span>
+                <button class="btn btn-danger btn-sm" type="button" (click)="delete(app)">Yes</button>
+                <button class="btn btn-ghost btn-sm" type="button" (click)="confirmingDeleteId.set(null)">No</button>
+              } @else {
+                <a class="btn btn-secondary btn-sm" [routerLink]="['/applications', app.id, 'edit']">Edit</a>
+                <button class="btn btn-ghost btn-sm" type="button" (click)="confirmingDeleteId.set(app.id)">Delete</button>
+              }
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="7" class="empty">
+              @if (loading()) { Loading… } @else { No applications match your filters. }
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  @if (page(); as p) {
+    @if (p.totalPages > 1) {
+      <div class="pagination">
+        <button class="btn btn-secondary btn-sm" [disabled]="p.page === 0" (click)="goToPage(p.page - 1)">← Prev</button>
+        <span class="muted">Page {{ p.page + 1 }} of {{ p.totalPages }}</span>
+        <button class="btn btn-secondary btn-sm" [disabled]="p.page >= p.totalPages - 1" (click)="goToPage(p.page + 1)">Next →</button>
+      </div>
+    }
+  }
+</div>

@@ -1,0 +1,22 @@
+# =====================================================================================
+# "prod" profile: activated with SPRING_PROFILES_ACTIVE=prod (docker-compose does this).
+# Values here OVERRIDE application.yml. Everything sensitive comes from environment variables.
+#
+#   DB_URL, DB_USERNAME, DB_PASSWORD   PostgreSQL connection
+#   JWT_SECRET                          token signing key (required in real deployments)
+#   SEED_DEMO_DATA                      true/false - create the demo account
+#   CORS_ALLOWED_ORIGINS                only needed if the frontend is served from another domain
+# =====================================================================================
+spring:
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/jobtracker}
+    username: ${DB_USERNAME:jobtracker}
+    password: ${DB_PASSWORD:jobtracker}
+  h2:
+    console:
+      enabled: false         # never expose a DB console in production
+
+app:
+  seed-demo-data: ${SEED_DEMO_DATA:true}
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost}

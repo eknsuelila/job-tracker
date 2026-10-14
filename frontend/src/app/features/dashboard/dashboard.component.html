@@ -1,0 +1,79 @@
+<div class="page-header">
+  <div>
+    <h1>Dashboard</h1>
+    <p>Your job search at a glance</p>
+  </div>
+  <a class="btn btn-primary" routerLink="/applications/new">+ New application</a>
+</div>
+
+@if (error()) {
+  <div class="alert" role="alert">{{ error() }}</div>
+}
+
+@if (loading()) {
+  <p class="muted">Loading…</p>
+} @else {
+  @if (stats(); as s) {
+    <!-- Summary cards -->
+    <section class="stat-grid">
+      <div class="card stat">
+        <span class="stat-label">Total applications</span>
+        <span class="stat-value">{{ s.total }}</span>
+      </div>
+      <div class="card stat">
+        <span class="stat-label">Interviews</span>
+        <span class="stat-value">{{ count('PHONE_SCREEN') + count('INTERVIEW') }}</span>
+      </div>
+      <div class="card stat">
+        <span class="stat-label">Offers</span>
+        <span class="stat-value offer">{{ count('OFFER') }}</span>
+      </div>
+      <div class="card stat">
+        <span class="stat-label">Response rate</span>
+        <span class="stat-value">{{ s.responseRate }}%</span>
+        <span class="stat-hint">Applications that reached a screen, interview or offer</span>
+      </div>
+    </section>
+
+    @if (s.total === 0) {
+      <div class="card empty">
+        <p>No applications yet. Add your first one to see your stats.</p>
+        <a class="btn btn-primary" routerLink="/applications/new">Add application</a>
+      </div>
+    } @else {
+      <!-- Charts: the #statusChart / #weeklyChart names connect to @ViewChild in the component -->
+      <section class="chart-grid">
+        <div class="card">
+          <h2>By status</h2>
+          <div class="chart-box"><canvas #statusChart></canvas></div>
+        </div>
+        <div class="card">
+          <h2>Applications per week</h2>
+          <div class="chart-box"><canvas #weeklyChart></canvas></div>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="section-head">
+          <h2>Recent applications</h2>
+          <a routerLink="/applications">View all →</a>
+        </div>
+        <ul class="recent">
+          <!-- @for requires a "track" expression so Angular can reuse DOM nodes efficiently -->
+          @for (app of recent(); track app.id) {
+            <li>
+              <div>
+                <strong>{{ app.position }}</strong>
+                <span class="muted"> · {{ app.company }}</span>
+              </div>
+              <div class="recent-meta">
+                <span class="muted">{{ app.appliedDate | date: 'mediumDate' }}</span>
+                <span class="badge badge-{{ app.status }}">{{ app.status | statusLabel }}</span>
+              </div>
+            </li>
+          }
+        </ul>
+      </section>
+    }
+  }
+}

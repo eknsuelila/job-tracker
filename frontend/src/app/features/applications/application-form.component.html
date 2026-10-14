@@ -1,0 +1,75 @@
+<div class="page-header">
+  <div>
+    <h1>{{ isEdit ? 'Edit application' : 'New application' }}</h1>
+    <p>{{ isEdit ? 'Update the details of this application' : 'Record a job you applied for (or want to)' }}</p>
+  </div>
+</div>
+
+@if (error()) {
+  <div class="alert" role="alert">{{ error() }}</div>
+}
+
+@if (loading()) {
+  <p class="muted">Loading…</p>
+} @else {
+  <form class="card" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+    <div class="form-grid">
+      <div class="field">
+        <label for="company">Company *</label>
+        <input id="company" class="input" formControlName="company" />
+        @if (showError('company')) { <span class="error">Company is required.</span> }
+      </div>
+
+      <div class="field">
+        <label for="position">Position *</label>
+        <input id="position" class="input" formControlName="position" />
+        @if (showError('position')) { <span class="error">Position is required.</span> }
+      </div>
+
+      <div class="field">
+        <label for="location">Location</label>
+        <input id="location" class="input" formControlName="location" placeholder="e.g. Remote" />
+      </div>
+
+      <div class="field">
+        <label for="salary">Salary (yearly, USD)</label>
+        <input id="salary" class="input" type="number" min="0" step="1000" formControlName="salary" />
+        @if (showError('salary')) { <span class="error">Salary cannot be negative.</span> }
+      </div>
+
+      <div class="field">
+        <label for="status">Status</label>
+        <select id="status" class="input" formControlName="status">
+          @for (s of statuses; track s) {
+            <option [value]="s">{{ s | statusLabel }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="appliedDate">Date applied *</label>
+        <input id="appliedDate" class="input" type="date" formControlName="appliedDate" [max]="maxDate" />
+        @if (showError('appliedDate')) { <span class="error">Date is required.</span> }
+      </div>
+
+      <div class="field full">
+        <label for="jobUrl">Job posting URL</label>
+        <input id="jobUrl" class="input" type="url" formControlName="jobUrl" placeholder="https://…" />
+        @if (showError('jobUrl')) { <span class="error">URL must start with http:// or https://</span> }
+      </div>
+
+      <div class="field full">
+        <label for="notes">Notes</label>
+        <textarea id="notes" class="input" formControlName="notes"
+                  placeholder="Recruiter name, interview prep, follow-up dates…"></textarea>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <a class="btn btn-secondary" routerLink="/applications">Cancel</a>
+      <button class="btn btn-primary" type="submit" [disabled]="saving()">
+        {{ saving() ? 'Saving…' : (isEdit ? 'Save changes' : 'Add application') }}
+      </button>
+    </div>
+  </form>
+}
