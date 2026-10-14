@@ -142,6 +142,35 @@ Then open http://localhost:4200 and click **Use the demo account** (`demo@exampl
 | `ng: command not found` | Use `npm start` / `npx ng …` (they use the project's local Angular CLI) after `npm install`. |
 | H2 console | http://localhost:8080/h2-console, JDBC URL `jdbc:h2:mem:jobtracker`, user `sa`, empty password (the DB lives in memory and resets on restart). |
 
+## Continuous deployment
+
+Every push to `main` is built and tested by GitHub Actions (`.github/workflows/ci.yml`). If CI passes,
+the new version is **deployed automatically** to a home-lab VM (http://192.168.86.15:8091).
+
+```mermaid
+flowchart LR
+    A[git push main] --> B[GitHub Actions CI<br/>build + tests]
+    B -- passed --> C[VM timer, every 2 min<br/>deploy/auto-deploy.sh]
+    C --> D[git reset to new commit<br/>docker compose up --build]
+    D --> E{health check<br/>page 200, API 401}
+    E -- ok --> F[live ✅]
+    E -- fails --> G[automatic rollback ↩]
+```
+
+The VM sits in a private network that GitHub can't reach, so the VM **pulls**: a systemd timer runs
+[`deploy/auto-deploy.sh`](deploy/auto-deploy.sh), which only deploys commits whose CI checks succeeded, and rolls back if the
+build or the health check fails. This avoids opening any port to the internet, and avoids self-hosted
+runners, which GitHub advises against for public repositories.
+
+**One-time setup on the VM** (user in the `docker` group, repo cloned to `~/apps/job-tracker`):
+
+```bash
+cd ~/apps/job-tracker && ./deploy/install-auto-deploy.sh
+journalctl -u auto-deploy@job-tracker -f        # watch deployments
+```
+
+Secrets (DB password, `JWT_SECRET`) live in an untracked `docker-compose.override.yml` on the VM and are never committed.
+
 ## Documentation
 
 **[docs/HOW-IT-WORKS.md](docs/HOW-IT-WORKS.md)** is a detailed walkthrough of the architecture, the
