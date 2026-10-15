@@ -1,5 +1,8 @@
 # Job Application Tracker
 
+**🔗 Live demo: [job-tracker.edsuelila.dev](https://job-tracker.edsuelila.dev)**: log in with `demo@example.com`, password `password123`.
+The demo accounts are shared by all visitors, so data you see may have been changed by someone else.
+
 A full-stack web app for organizing a job search: record every application, move it through the
 hiring pipeline (Wishlist → Applied → Phone Screen → Interview → Offer), and see your progress on a dashboard.
 
